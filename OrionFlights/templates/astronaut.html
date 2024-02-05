@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ astronaut.name }}{% endblock %}
+{% block content1 %}
+    <!--<button type="submit" class="button_login">Логин</button> -->
+    <!-- <button type="submit" class="button_register">Регистрация</button> -->
+{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <div class="card_sub">
+        <div>
+            <img src='/static/img/{{ astronaut.image }}' class="card_img_sub" alt="{{ astronaut.name }}">
+        </div>
+        <div class="card_sub_2">
+            <p class="card_title_sub">{{ astronaut.name }}</p>
+            <p class="card_title_sub" style="font-size: 30px;">Возраст: {{ astronaut.age }} лет</p>
+            <p class="card_title_sub" style="font-size: 30px;">Страна: {{ astronaut.country }}</p>
+            <p class="card_title_sub" style="font-size: 30px;">Пол: {{ astronaut.sex }}</p>
+            <p class="card_text_sub">{{ astronaut.background }}</p>
+            <a href="../../" class="button_back">Вернуться назад</a>
+            <!--<button class="button_back" onclick="location.href='/'">Вернуться назад</button>-->
+        </div>
+
+    </div>
+
+
+{% endblock %}
