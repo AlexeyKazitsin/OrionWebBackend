@@ -397,7 +397,7 @@ def login(request):
     return response
 
 
-#@swagger_auto_schema(method='post', request_body=UserRegisterSerializer) #!!!
+@swagger_auto_schema(method='post', request_body=UserRegisterSerializer) #!!!
 @api_view(["POST"])
 def register(request):
     serializer = UserRegisterSerializer(data=request.data)
