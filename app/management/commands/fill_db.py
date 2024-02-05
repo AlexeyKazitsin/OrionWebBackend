@@ -14,7 +14,7 @@ def add_astronauts():
         experience="Опытный астронавт с множеством космических полетов. Специализируется на выходах в открытый космос и работе с робототехникой.",
         age=45,
         sex="Мужской",
-        image="astronauts/1.png"
+        image="astronauts/7.png"
     )
 
     Astronaut.objects.create(
@@ -23,7 +23,7 @@ def add_astronauts():
         experience="Бывший инженер со специализацией в системах космических аппаратов. Выбрана за свои технические навыки и умения решать проблемы.",
         age=38,
         sex="Женский",
-        image="astronauts/2.png"
+        image="astronauts/3.png"
     )
 
     Astronaut.objects.create(
@@ -32,7 +32,7 @@ def add_astronauts():
         experience="Космонавт с обширным опытом в долгосрочных космических полетах. Обучен различным научным экспериментам на борту космических аппаратов.",
         age=50,
         sex="Мужской",
-        image="astronauts/3.png"
+        image="astronauts/1.png"
     )
 
     Astronaut.objects.create(
@@ -41,7 +41,7 @@ def add_astronauts():
         experience="Врач, специализирующаяся на космической медицине. Проводит эксперименты, связанные с здоровьем человека в условиях невесомости.",
         age=41,
         sex="Женский",
-        image="astronauts/4.png"
+        image="astronauts/8.png"
     )
 
     Astronaut.objects.create(
@@ -85,9 +85,6 @@ def add_flights():
         else:
             flight.date_formation = random_date()
             flight.date_created = flight.date_formation - random_timedelta()
-
-        for i in range(random.randint(1, 3)):
-            flight.astronauts.add(random.choice(astronauts))
 
         for i in range(random.randint(1, 3)):
             try:

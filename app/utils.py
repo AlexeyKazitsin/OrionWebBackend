@@ -17,7 +17,7 @@ def identity_user(request):
     return user
 
 
-def random_text():
+def random_text(maxlen=10):
     words = ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "cras", "eu", "blandit",
            "lacus",  "vivamus", "tincidunt", "ante", "nec", "nunc", "tincidunt", "lacinia", "curabitur", "maximus",
            "vulputate", "nisi", "vitae", "bibendum"]
