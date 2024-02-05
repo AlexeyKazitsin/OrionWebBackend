@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Список астронавтов{% endblock %}
+
+
+
+{% block content1 %}
+    <form method="GET" action="{% url 'astronauts' %}">
+        <div class="search_bar">
+            <input type="text" class="search_input" name="query_astronauts" id="search-input" placeholder="Поиск"
+                   value="{{ search_value }}">
+            <button type="submit" id="search-button" class="button_search">Поиск</button>
+        </div>
+    </form>
+    <!-- <button type="submit" class="button_login">Логин</button> -->
+    <!-- <button type="submit" class="button_register">Регистрация</button> -->
+
+{% endblock %}
+{% block content %}
+
+
+
+
+    <div>
+        <div class="cards">
+            {% for astronaut in filtered_data %}
+                <div class="card">
+                    <img src='static/img/{{ astronaut.image }}' class="card_img" alt="{{ astronaut.name }}">
+                    <p class="card_title" style="font-size: 25px">{{ astronaut.name }}</p>
+                    <p class="card_title">Возраст: {{ astronaut.age }} лет</p>
+                    <p class="card_title">Пол: {{ astronaut.sex }}</p>
+                    <p class="card_title">Страна: {{ astronaut.country }}</p>
+
+                    <!--<p class="card_text">{{ astronaut.text }}</p> -->
+
+                    <a href="{% url 'astronaut_url' astronaut.id %}" class="card_check">Подробнее</a>
+                </div>
+            {% empty %}
+                <p class="text404">Астронавты не найдены.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
