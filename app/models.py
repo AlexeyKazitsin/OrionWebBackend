@@ -11,15 +11,15 @@ class Astronaut(models.Model):
         (2, 'Отстранен'),
     )
 
-    name = models.CharField(max_length=100, verbose_name="Имя", blank=True, null=True)
-    background = models.TextField(max_length=500, verbose_name="Бэкграунд", blank=True, null=True)
+    name = models.CharField(max_length=100, verbose_name="Имя", default="Имя астронавта")
+    experience = models.TextField(max_length=500, verbose_name="Опыт", default = "Опыт астронавта")
     age = models.IntegerField(verbose_name="Возраст", blank=True, null=True)
 
-    country = models.CharField(max_length=100, verbose_name="Страна", blank=True, null=True)
-    sex = models.CharField(max_length=100, verbose_name="Пол", blank=True, null=True)
+    country = models.CharField(max_length=100, verbose_name="Страна", default="Страна")
+    sex = models.CharField(max_length=100, verbose_name="Пол", default="Пол")
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=1, verbose_name="Статус")
-    image = models.ImageField(upload_to="astronauts", default="astronauts/default.jpg", verbose_name="Фото")
+    image = models.ImageField(upload_to="astronauts", default="astronauts/default.jpg", verbose_name="Фото", blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -76,12 +76,21 @@ class Flight(models.Model):
         (5, 'Удалён'),
     )
 
-    astronauts = models.ManyToManyField(Astronaut, verbose_name="Астронавты", null=True)
+    CREW_HEALTH_CHOICES = (
+        (-1, 'Не пройдено'),
+        (0, 'Одобрено'),
+        (1, 'Отказано')
+    )
+
+    # is_returned_alive = models.CharField(blank=True, null=True) #заменил is_returned_alive на is_crew_healthy
+    is_crew_healthy = models.IntegerField(verbose_name="Результат медицинского обследования",
+                                                           default=-1, choices=CREW_HEALTH_CHOICES, blank=True, null=True)
+
+
+    #astronauts = models.ManyToManyField(Astronaut, verbose_name="Астронавты", null=True)
 
     mission_name = models.CharField(max_length=100, blank=True, null=True)
     objective = models.CharField(max_length=500, blank=True, null=True)
-
-    is_returned_alive = models.CharField(blank=True, null=True)
 
     status = models.IntegerField(choices=STATUS_CHOICES, default=1, verbose_name="Статус")
     date_created = models.DateTimeField(default=timezone.now(), verbose_name="Дата создания")
@@ -100,3 +109,16 @@ class Flight(models.Model):
         verbose_name = "Полет"
         verbose_name_plural = "Полеты"
         ordering = ('-date_formation',)
+
+
+class AstFlig(models.Model):
+    astronaut = models.ForeignKey(Astronaut, models.CASCADE, blank=True, null=True)
+    flight = models.ForeignKey(Flight, models.CASCADE, blank=True, null=True)
+    #is_captain = models.BooleanField(verbose_name="Статус капитана", blank=True, null=True, default=False)
+
+    def __str__(self):
+        return "Астронавт-Полет №" + str(self.pk)
+
+    class Meta:
+        verbose_name = "Астронавт-Полет"
+        verbose_name_plural = "Астронавты-Полет"

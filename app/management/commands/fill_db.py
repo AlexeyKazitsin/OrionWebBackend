@@ -4,13 +4,14 @@ from django.core import management
 from django.core.management.base import BaseCommand
 from ...models import *
 from .utils import random_date, random_timedelta
+from ...utils import random_text
 
 
 def add_astronauts():
     Astronaut.objects.create(
         name="Джон Доу",
         country="Соединенные Штаты",
-        background="Опытный астронавт с множеством космических полетов. Специализируется на выходах в открытый космос и работе с робототехникой.",
+        experience="Опытный астронавт с множеством космических полетов. Специализируется на выходах в открытый космос и работе с робототехникой.",
         age=45,
         sex="Мужской",
         image="astronauts/1.png"
@@ -19,7 +20,7 @@ def add_astronauts():
     Astronaut.objects.create(
         name="Джейн Смит",
         country="Канада",
-        background="Бывший инженер со специализацией в системах космических аппаратов. Выбрана за свои технические навыки и умения решать проблемы.",
+        experience="Бывший инженер со специализацией в системах космических аппаратов. Выбрана за свои технические навыки и умения решать проблемы.",
         age=38,
         sex="Женский",
         image="astronauts/2.png"
@@ -28,7 +29,7 @@ def add_astronauts():
     Astronaut.objects.create(
         name="Михаил Иванов",
         country="Россия",
-        background="Космонавт с обширным опытом в долгосрочных космических полетах. Обучен различным научным экспериментам на борту космических аппаратов.",
+        experience="Космонавт с обширным опытом в долгосрочных космических полетах. Обучен различным научным экспериментам на борту космических аппаратов.",
         age=50,
         sex="Мужской",
         image="astronauts/3.png"
@@ -37,7 +38,7 @@ def add_astronauts():
     Astronaut.objects.create(
         name="Изабелла Родригес",
         country="Бразилия",
-        background="Врач, специализирующаяся на космической медицине. Проводит эксперименты, связанные с здоровьем человека в условиях невесомости.",
+        experience="Врач, специализирующаяся на космической медицине. Проводит эксперименты, связанные с здоровьем человека в условиях невесомости.",
         age=41,
         sex="Женский",
         image="astronauts/4.png"
@@ -46,7 +47,7 @@ def add_astronauts():
     Astronaut.objects.create(
         name="Чэн Вэй",
         country="Китай",
-        background="Бывший истребительный летчик, отобранный для тренировок космонавтов. Опыт в управлении космическими аппаратами и навигации.",
+        experience="Бывший истребительный летчик, отобранный для тренировок космонавтов. Опыт в управлении космическими аппаратами и навигации.",
         age=36,
         sex="Женский",
         image="astronauts/5.png"
@@ -56,10 +57,10 @@ def add_astronauts():
 
 
 def add_flights():
-    owners = CustomUser.objects.filter(is_superuser=False)
+    users = CustomUser.objects.filter(is_superuser=False)
     moderators = CustomUser.objects.filter(is_superuser=True)
 
-    if len(owners) == 0 or len(moderators) == 0:
+    if len(users) == 0 or len(moderators) == 0:
         print("Заявки не могут быть добавлены. Сначала добавьте пользователей с помощью команды add_users")
         return
 
@@ -67,20 +68,36 @@ def add_flights():
 
     for _ in range(30):
         flight = Flight.objects.create()
+        flight.mission_name = "Полет №" + str(flight.pk)
+        flight.objective = random_text(10)
         flight.status = random.randint(2, 5)
-        flight.owner = random.choice(owners)
+        flight.owner = random.choice(users)
+
+        if random.randint(0, 10) > 3:
+            flight.is_crew_healthy = random.randint(0, 1)
 
         if flight.status in [3, 4]:
             flight.date_complete = random_date()
             flight.date_formation = flight.date_complete - random_timedelta()
             flight.date_created = flight.date_formation - random_timedelta()
             flight.moderator = random.choice(moderators)
+            flight.is_crew_healthy = random.randint(0, 1)
         else:
             flight.date_formation = random_date()
             flight.date_created = flight.date_formation - random_timedelta()
 
         for i in range(random.randint(1, 3)):
             flight.astronauts.add(random.choice(astronauts))
+
+        for i in range(random.randint(1, 3)):
+            try:
+                item = AstFlig.objects.create()
+                item.cosmetic = flight
+                item.substance = random.choice(astronauts)
+                #item.is_captain = random.choice([True, False])
+                item.save()
+            except Exception as e:
+                print(e)
 
         flight.save()
 

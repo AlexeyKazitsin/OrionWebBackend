@@ -19,7 +19,10 @@ def get_draft_flight(request):
     if user is None:
         return None
 
-    flight = Flight.objects.filter(owner_id=user.id).filter(status=1).first()
+    flight = Flight.objects.filter(owner_id=user.pk).filter(status=1).first()
+
+    if flight is None:
+        return None
 
     return flight
 
@@ -48,7 +51,7 @@ def get_astronaut_by_id(request, astronaut_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     astronaut = Astronaut.objects.get(pk=astronaut_id)
-    serializer = AstronautSerializer(astronaut, many=False)
+    serializer = AstronautSerializer(astronaut)
 
     return Response(serializer.data)
 
@@ -60,14 +63,14 @@ def update_astronaut(request, astronaut_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     astronaut = Astronaut.objects.get(pk=astronaut_id)
-    serializer = AstronautSerializer(astronaut, data=request.data, many=False, partial=True)
+    serializer = AstronautSerializer(astronaut, data=request.data, partial=True)
 
     if serializer.is_valid():
         serializer.save()
 
     return Response(serializer.data)
 
-'''
+
 @api_view(["POST"])
 @permission_classes([IsModerator])
 def create_astronaut(request):
@@ -76,8 +79,8 @@ def create_astronaut(request):
     serializer = AstronautSerializer(astronaut)
 
     return Response(serializer.data)
-'''
 
+'''
 @api_view(["POST"])
 @permission_classes([IsModerator])
 def create_astronaut(request):
@@ -87,10 +90,10 @@ def create_astronaut(request):
 
     serializer.save()
     return Response(serializer.data)
-
+'''
 
 @api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) #IsModerator
 def delete_astronaut(request, astronaut_id):
     if not Astronaut.objects.filter(pk=astronaut_id).exists():
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -113,19 +116,23 @@ def add_astronaut_to_flight(request, astronaut_id):
 
     astronaut = Astronaut.objects.get(pk=astronaut_id)
 
-    flight = get_draft_flight(request)
+    draft_flight = get_draft_flight(request)
 
-    if flight is None:
-        flight = Flight.objects.create()
+    if draft_flight is None:
+        draft_flight = Flight.objects.create()
+        draft_flight.owner = identity_user(request)
+        draft_flight.save()
 
-    if flight.astronauts.contains(astronaut):
-        return Response(status=status.HTTP_409_CONFLICT)
+    if AstFlig.objects.filter(flight=draft_flight, astronaut=astronaut).exists():
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    flight.astronauts.add(astronaut)
-    flight.owner = identity_user(request)
-    flight.save()
+    cons = AstFlig.objects.create()
+    cons.flight = draft_flight
+    cons.astronaut = astronaut
+    cons.save()
 
-    serializer = FlightSerializer(flight)
+    serializer = FlightSerializer(draft_flight)
+
     return Response(serializer.data)
 
 
@@ -166,16 +173,16 @@ def search_flights(request):
     flights = Flight.objects.exclude(status__in=[1, 5])
 
     if not user.is_moderator:
-        flights = flights.filter(owner=user)
+        flights = flights.filter(owner_id=user.pk)
 
     if status_id != -1:
         flights = flights.filter(status=status_id)
 
-    if date_start != -1:
+    if date_start:
         flights = flights.filter(date_formation__gte=parse_datetime(date_start))
 
-    if date_end != -1:
-        flights = flights.filter(date_formation__lt=parse_datetime(date_end))
+    if date_end:
+        flights = flights.filter(date_formation__lte=parse_datetime(date_end))
 
     serializer = FlightsSerializer(flights, many=True)
 
@@ -189,7 +196,7 @@ def get_flight_by_id(request, flight_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     flight = Flight.objects.get(pk=flight_id)
-    serializer = FlightSerializer(flight, many=False)
+    serializer = FlightSerializer(flight)
 
     return Response(serializer.data)
 
@@ -201,12 +208,27 @@ def update_flight(request, flight_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     flight = Flight.objects.get(pk=flight_id)
-    serializer = FlightSerializer(flight, data=request.data, many=False, partial=True)
+    serializer = FlightSerializer(flight, data=request.data, partial=True)
 
     if serializer.is_valid():
         serializer.save()
 
     return Response(serializer.data)
+
+@api_view(["PUT"])
+@permission_classes([IsRemoteService])
+def update_flight_crew_health(request, flight_id):
+    if not Flight.objects.filter(pk=flight_id).exists():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    flight = Flight.objects.get(pk=flight_id)
+    serializer = FlightSerializer(flight, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+
+    return Response(serializer.data)
+
 
 
 @api_view(["PUT"])
@@ -217,23 +239,24 @@ def update_status_user(request, flight_id):
 
     flight = Flight.objects.get(pk=flight_id)
 
+    flight.owner = identity_user(request)
     flight.status = 2
     flight.date_formation = timezone.now()
     flight.save()
 
-    # calculate_opening_year(flight_id)
+    # calculate_crew_health(flight_id)
 
-    serializer = FlightSerializer(flight, many=False)
+    serializer = FlightSerializer(flight)
 
     return Response(serializer.data)
 
 
-def calculate_opening_year(flight_id):
+def calculate_crew_health(flight_id):
     data = {
         "flight_id": flight_id
     }
 
-    requests.post("http://127.0.0.1:8080/calc_year/", json=data, timeout=3)
+    requests.post("http://127.0.0.1:8080/calc_crew_health/", json=data, timeout=3)
 
 
 @api_view(["PUT"])
@@ -257,7 +280,7 @@ def update_status_admin(request, flight_id):
     flight.moderator = identity_user(request)   #!!! добавил строчку
     flight.save()
 
-    serializer = FlightSerializer(flight, many=False)
+    serializer = FlightSerializer(flight)
 
     return Response(serializer.data)
 
@@ -282,6 +305,19 @@ def delete_flight(request, flight_id):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_astronaut_from_flight(request, flight_id, astronaut_id):
+    if not AstFlig.objects.filter(flight_id=flight_id, astronaut_id=astronaut_id).exists():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    item = AstFlig.objects.get(flight_id=flight_id, astronaut_id=astronaut_id)
+    item.delete()
+
+    flight = Flight.objects.get(pk=flight_id)
+
+    serializer = FlightSerializer(flight)
+
+    return Response(serializer.data)
+
+'''
     if not Flight.objects.filter(pk=flight_id).exists():
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -299,6 +335,35 @@ def delete_astronaut_from_flight(request, flight_id, astronaut_id):
     serializer = FlightSerializer(flight)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+'''
+
+'''
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_astronaut_in_flight(request, flight_id, astronaut_id):
+    if not AstFlig.objects.filter(astronaut_id=astronaut_id, flight_id=flight_id).exists():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    item = AstFlig.objects.get(astronaut_id=astronaut_id, flight_id=flight_id)
+    return Response(item.is_captain)
+'''
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_astronaut_in_flight(request, flight_id, astronaut_id):
+    if not AstFlig.objects.filter(astronaut_id=astronaut_id, flight_id=flight_id).exists():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    item = AstFlig.objects.get(astronaut_id=astronaut_id, flight_id=flight_id)
+
+    serializer = AstFligSerializer(item, data=request.data, many=False, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+
+    return Response(serializer.data)
+
 
 
 @swagger_auto_schema(method='post', request_body=UserLoginSerializer)
@@ -311,23 +376,25 @@ def login(request):
 
     user = authenticate(**serializer.data)
     if user is None:
-        message = {"message": "invalid credentials"}
+        message = {"message": "Введенные данные невалидны"}
         return Response(message, status=status.HTTP_401_UNAUTHORIZED)
 
     access_token = create_access_token(user.id)
 
-    user_data = {
-        "user_id": user.id,
-        "name": user.name,
-        "email": user.email,
-        "is_moderator": user.is_moderator,
-        "access_token": access_token
-    }
+    serializer = UserSerializer(
+        user,
+        context={
+            "access_token": access_token
+        }
+    )
 
-    return Response(user_data, status=status.HTTP_201_CREATED)
+    response = Response(serializer.data, status=status.HTTP_200_OK)
+    response.set_cookie('access_token', access_token, httponly=False, expires=settings.JWT["ACCESS_TOKEN_LIFETIME"])
+
+    return response
 
 
-@swagger_auto_schema(method='post', request_body=UserRegisterSerializer) #!!!
+#@swagger_auto_schema(method='post', request_body=UserRegisterSerializer) #!!!
 @api_view(["POST"])
 def register(request):
     serializer = UserRegisterSerializer(data=request.data)
@@ -340,31 +407,23 @@ def register(request):
     access_token = create_access_token(user.id)
 
     message = {
-        'message': 'Пользователь успешно зарегистрирован!',
+        'message': 'Пользователь успешно зарегистрирован',
         'user_id': user.id,
         "access_token": access_token
     }
 
-    return Response(message, status=status.HTTP_201_CREATED)
+    response = Response(message, status=status.HTTP_201_CREATED)
+    response.set_cookie('access_token', access_token, httponly=False, expires=settings.JWT["ACCESS_TOKEN_LIFETIME"])
+
+    return response
 
 
 @api_view(["POST"])
 def check(request):
-    token = get_access_token(request)
+    user = identity_user(request)
 
-    if token is None:
-        message = {"message": "Token is not found"}
-        return Response(message, status=status.HTTP_401_UNAUTHORIZED)
-
-    if token in cache:
-        message = {"message": "Token in blacklist"}
-        return Response(message, status=status.HTTP_401_UNAUTHORIZED)
-
-    payload = get_jwt_payload(token)
-    user_id = payload["user_id"]
-
-    user = CustomUser.objects.get(pk=user_id)
-    serializer = UserSerializer(user, many=False)
+    user = CustomUser.objects.get(pk=user.pk)
+    serializer = UserSerializer(user)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -377,8 +436,8 @@ def logout(request):
     if access_token not in cache:
         cache.set(access_token, settings.JWT["ACCESS_TOKEN_LIFETIME"])
 
-    message = {
-        "message": "Вы успешно вышли из аккаунта"
-    }
+    message = {"message": "Вы успешно вышли из аккаунта"}
+    response = Response(message, status=status.HTTP_200_OK)
+    response.delete_cookie('access_token')
 
-    return  Response(message, status=status.HTTP_200_OK)
+    return  response

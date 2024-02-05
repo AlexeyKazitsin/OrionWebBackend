@@ -3,5 +3,6 @@ from .models import *
 
 # Register your models here.
 admin.site.register(Astronaut)
+admin.site.register(AstFlig)
 admin.site.register(Flight)
 admin.site.register(CustomUser)

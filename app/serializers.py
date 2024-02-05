@@ -10,9 +10,14 @@ class AstronautSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    access_token = serializers.SerializerMethodField()
+
+    def get_access_token(self, user):
+        return self.context.get("access_token", "")
+
     class Meta:
         model = CustomUser
-        fields = ('name', )
+        fields = ('id', 'name', 'email', 'is_moderator', 'access_token')
 
 
 class FlightsSerializer(serializers.ModelSerializer):
@@ -24,10 +29,20 @@ class FlightsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class AstFligSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AstFlig
+        fields = "__all__"
+
+
 class FlightSerializer(serializers.ModelSerializer):
-    astronauts = AstronautSerializer(read_only=True, many=True)
+    astronauts = serializers.SerializerMethodField()
     owner = UserSerializer(read_only=True, many=False)
     moderator = UserSerializer(read_only=True, many=False)
+
+    def get_astronauts(self, flight):
+        items = AstFlig.objects.filter(flight_id=flight.pk)
+        return AstronautSerializer([item.astronaut for item in items], many=True).data
 
     class Meta:
         model = Flight
@@ -57,7 +72,3 @@ class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True)
 
-
-#class LogoutSerializer(serializers.Serializer):
-    #email = serializers.EmailField(required=True)
-    #password = serializers.CharField(required=True)

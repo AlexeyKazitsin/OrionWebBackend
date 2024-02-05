@@ -22,10 +22,16 @@ urlpatterns = [
     path('api/flights/search/', search_flights),  # GET
     path('api/flights/<int:flight_id>/', get_flight_by_id),  # GET
     path('api/flights/<int:flight_id>/update/', update_flight),  # PUT
+    #path('api/flights/<int:flight_id>/update_crew_health/', update_flight_crew_health), #PUT
     path('api/flights/<int:flight_id>/update_status_user/', update_status_user),  # PUT
     path('api/flights/<int:flight_id>/update_status_admin/', update_status_admin),  # PUT
     path('api/flights/<int:flight_id>/delete/', delete_flight),  # DELETE
-    path('api/flights/<int:flight_id>/delete_astronaut/<int:astronaut_id>/', delete_astronaut_from_flight), # DELETE
+    #path('api/flights/<int:flight_id>/delete_astronaut/<int:astronaut_id>/', delete_astronaut_from_flight), # DELETE
+
+    #м-м
+    #path('api/flights/<int:flight_id>/astronauts/<int:astronaut_id>/', get_astronaut_in_flight),  # GET
+    #path('api/flights/<int:flight_id>/update_astronaut/<int:astronaut_id>/', update_astronaut_in_flight),  # PUT
+    path('api/flights/<int:flight_id>/delete_astronaut/<int:astronaut_id>/', delete_astronaut_from_flight),  # DELETE
 
     # Набор методов для аутентификации и авторизации
     path("api/register/", register),
