@@ -33,10 +33,4 @@ urlpatterns = [
     #path('api/flights/<int:flight_id>/update_astronaut/<int:astronaut_id>/', update_astronaut_in_flight),  # PUT
     path('api/flights/<int:flight_id>/delete_astronaut/<int:astronaut_id>/', delete_astronaut_from_flight),  # DELETE
 
-    # Набор методов для аутентификации и авторизации
-    path("api/register/", register),
-    path("api/login/", login),
-    path("api/check/", check),
-    path("api/logout/", logout)
-
 ]
