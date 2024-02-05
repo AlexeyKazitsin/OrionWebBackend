@@ -7,6 +7,7 @@ from .utils import random_date, random_timedelta
 from ...utils import random_text
 
 
+
 def add_astronauts():
     Astronaut.objects.create(
         name="Джон Доу",

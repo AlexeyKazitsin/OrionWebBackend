@@ -178,10 +178,10 @@ def search_flights(request):
     if status_id != -1:
         flights = flights.filter(status=status_id)
 
-    if date_start:
+    if date_start != -1:
         flights = flights.filter(date_formation__gte=parse_datetime(date_start))
 
-    if date_end:
+    if date_end != -1:
         flights = flights.filter(date_formation__lte=parse_datetime(date_end))
 
     serializer = FlightsSerializer(flights, many=True)
