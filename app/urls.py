@@ -22,7 +22,7 @@ urlpatterns = [
     path('api/flights/search/', search_flights),  # GET
     path('api/flights/<int:flight_id>/', get_flight_by_id),  # GET
     path('api/flights/<int:flight_id>/update/', update_flight),  # PUT
-    #path('api/flights/<int:flight_id>/update_crew_health/', update_flight_crew_health), #PUT
+    path('api/flights/<int:flight_id>/update_crew_health/', update_flight_crew_health), #PUT
     path('api/flights/<int:flight_id>/update_status_user/', update_status_user),  # PUT
     path('api/flights/<int:flight_id>/update_status_admin/', update_status_admin),  # PUT
     path('api/flights/<int:flight_id>/delete/', delete_flight),  # DELETE

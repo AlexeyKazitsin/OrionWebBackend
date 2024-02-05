@@ -239,12 +239,15 @@ def update_status_user(request, flight_id):
 
     flight = Flight.objects.get(pk=flight_id)
 
+
+
+
     flight.owner = identity_user(request)
     flight.status = 2
     flight.date_formation = timezone.now()
     flight.save()
 
-    # calculate_crew_health(flight_id)
+    calculate_crew_health(flight_id)
 
     serializer = FlightSerializer(flight)
 
