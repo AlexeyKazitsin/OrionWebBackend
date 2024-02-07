@@ -30,8 +30,9 @@ def get_draft_flight(request):
 @api_view(["GET"])
 def search_astronauts(request):
     query = request.GET.get("query", "")
+    sexquery = request.GET.get("sexquery", "") #УДАЛИТЬ
 
-    astronaut = Astronaut.objects.filter(status=1).filter(name__icontains=query)
+    astronaut = Astronaut.objects.filter(status=1).filter(name__icontains=query, sex__icontains=sexquery) #УДАЛИТЬ
 
     serializer = AstronautSerializer(astronaut, many=True)
 
@@ -74,11 +75,10 @@ def update_astronaut(request, astronaut_id):
 @api_view(["POST"])
 @permission_classes([IsModerator])
 def create_astronaut(request):
-    astronaut = Astronaut.objects.create()
-
-    serializer = AstronautSerializer(astronaut)
-
-    return Response(serializer.data)
+    serializer = AstronautSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
 
 '''
 @api_view(["POST"])
@@ -314,57 +314,16 @@ def delete_astronaut_from_flight(request, flight_id, astronaut_id):
     item = AstFlig.objects.get(flight_id=flight_id, astronaut_id=astronaut_id)
     item.delete()
 
+
+
     flight = Flight.objects.get(pk=flight_id)
 
     serializer = FlightSerializer(flight)
-
-    return Response(serializer.data)
-
-'''
-    if not Flight.objects.filter(pk=flight_id).exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if not Astronaut.objects.filter(pk=astronaut_id).exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    flight = Flight.objects.get(pk=flight_id)
-    flight.astronauts.remove(Astronaut.objects.get(pk=astronaut_id))
-    flight.save()
-
-    if flight.astronauts.count() == 0:
+    '''
+    if len(AstFlig.objects.filter(flight_id=flight_id)) == 0:
         flight.delete()
         return Response(status=status.HTTP_201_CREATED)
-
-    serializer = FlightSerializer(flight)
-
-    return Response(serializer.data, status=status.HTTP_200_OK)
-'''
-
-'''
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_astronaut_in_flight(request, flight_id, astronaut_id):
-    if not AstFlig.objects.filter(astronaut_id=astronaut_id, flight_id=flight_id).exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    item = AstFlig.objects.get(astronaut_id=astronaut_id, flight_id=flight_id)
-    return Response(item.is_captain)
-'''
-
-
-@api_view(["PUT"])
-@permission_classes([IsAuthenticated])
-def update_astronaut_in_flight(request, flight_id, astronaut_id):
-    if not AstFlig.objects.filter(astronaut_id=astronaut_id, flight_id=flight_id).exists():
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    item = AstFlig.objects.get(astronaut_id=astronaut_id, flight_id=flight_id)
-
-    serializer = AstFligSerializer(item, data=request.data, many=False, partial=True)
-
-    if serializer.is_valid():
-        serializer.save()
-
+    '''
     return Response(serializer.data)
 
 
@@ -391,6 +350,15 @@ def login(request):
         }
     )
 
+    user_data = {
+        "user_id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "is_moderator": user.is_moderator,
+        "access_token": access_token
+    }
+
+    #response = Response(user_data, status=status.HTTP_200_OK)
     response = Response(serializer.data, status=status.HTTP_200_OK)
     response.set_cookie('access_token', access_token, httponly=False, expires=settings.JWT["ACCESS_TOKEN_LIFETIME"])
 
@@ -422,10 +390,25 @@ def register(request):
 
 
 @api_view(["POST"])
+#@permission_classes([IsAuthenticated])
 def check(request):
-    user = identity_user(request)
+    #user = identity_user(request)
 
-    user = CustomUser.objects.get(pk=user.pk)
+    token = get_access_token(request)
+
+    if token is None:
+        message = {"message": "Token is not found"}
+        return Response(message, status=status.HTTP_401_UNAUTHORIZED)
+
+    if token in cache:
+        message = {"message": "Token in blacklist"}
+        return Response(message, status=status.HTTP_401_UNAUTHORIZED)
+
+    payload = get_jwt_payload(token)
+    user_id = payload["user_id"]
+
+    #user = CustomUser.objects.get(pk=user.pk)
+    user = CustomUser.objects.get(pk=user_id)
     serializer = UserSerializer(user)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -441,6 +424,6 @@ def logout(request):
 
     message = {"message": "Вы успешно вышли из аккаунта"}
     response = Response(message, status=status.HTTP_200_OK)
-    response.delete_cookie('access_token')
+    #response.delete_cookie('access_token')
 
     return  response
