@@ -27,8 +27,9 @@ def get_draft_flight():
 @api_view(["GET"])
 def search_astronauts(request):
     query = request.GET.get("query", "")
+    sexquery = request.GET.get("sexquery", "")
 
-    astronaut = Astronaut.objects.filter(status=1).filter(name__icontains=query)
+    astronaut = Astronaut.objects.filter(status=1).filter(name__icontains=query, sex__icontains=sexquery)
 
     serializer = AstronautSerializer(astronaut, many=True)
 
@@ -70,11 +71,10 @@ def update_astronaut(request, astronaut_id):
 
 @api_view(["POST"])
 def create_astronaut(request):
-    astronaut = Astronaut.objects.create()
-
-    serializer = AstronautSerializer(astronaut)
-
-    return Response(serializer.data)
+    serializer = AstronautSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
 
 
 @api_view(["DELETE"])
