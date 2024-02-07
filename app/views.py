@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from .serializers import *
 
 
-user = CustomUser.objects.get(pk=102)
+user = CustomUser.objects.get(pk=138)
 #print(user)
 
 
