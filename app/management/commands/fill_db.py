@@ -77,7 +77,7 @@ def add_flights():
         if random.randint(0, 10) > 3:
             flight.is_crew_healthy = random.randint(0, 1)
 
-        if flight.status in [3, 4]:
+        if flight.status in [2, 3, 4]:
             flight.date_complete = random_date()
             flight.date_formation = flight.date_complete - random_timedelta()
             flight.date_created = flight.date_formation - random_timedelta()
