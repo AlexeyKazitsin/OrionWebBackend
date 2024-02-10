@@ -43,12 +43,46 @@ AstronautsData = {
     ]
 }
 
+flight = {
+        'mission_name': 'Вояджер 11',
+        'objective': 'Собрать грунт с поверхности марса.'
+}
+
+astronauts_in_flight = {
+    'astronaut': [
+        {
+            'id': 0,
+            'name': 'Александр Иванов',
+            'sex': 'Мужской',
+            'text': 'Вырос во Владивостоке, с детства увлекался космосом. Окончив университет в Москве по аэрокосмической инженерии, он присоединился к Роскосмосу и стал ключевым членом программы Orion. Его экспертиза в астронавигации и лидерские качества сделали его незаменимым для миссии, а его страсть к космосу привлекает внимание молодежи через блог о своих космических приключениях.',
+            'image': 'astro1.jpg',
+            'age': '30',
+            'country': 'Россия',
+        },
+        {
+            'id': 2,
+            'name': 'Лена Шмидт',
+            'sex': 'Женский',
+            'text': 'Выросла в Берлине, проявила удивительные математические способности и страсть к космосу с ранних лет. Окончив университет с астрономическим образованием, она присоединилась к международной космической программе и была выбрана для участия в миссии Orion благодаря своему уникальному пониманию астрономии и инженерии. Вне работы на космической станции, Лена усердно работает над пропагандой науки среди молодежи, стремясь вдохновить будущее поколение исследователей вселенной.',
+            'image': 'astro3.jpg',
+            'age': '50',
+            'country': 'США',
+        }
+    ]
+}
 
 def GetAstronaut(request, id):
     data_by_id = AstronautsData.get('astronaut')[id]
     return render(request, "astronaut.html", {
         'astronaut': data_by_id
     })
+
+def GetFlight(request):
+    filtered_data = astronauts_in_flight['astronaut']
+    flight_data = flight
+    #return render(request, "draft_flight.html")
+    return render(request, "draft_flight.html", {'filtered_data': filtered_data, 'fligt_data': flight_data})
+
 
 
 def GetAstronauts(request):

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Черновой полет{% endblock %}
+
+{% block content1 %}
+    <h1 style="color: #e0e0e0; margin: auto; ">Черновой полет</h1>
+{% endblock %}
+
+
+{% block content %}
+    <div>
+        <div class="flight_container">
+            <div>
+                <h1>Название миссии: {{ fligt_data.mission_name }}</h1>
+                <h1>Цель миссии: {{ fligt_data.objective }}</h1>
+            </div>
+
+
+            <div class="astronauts">
+                <h1>Астронавты:</h1>
+                <div class="cards" style="margin-top: 90px; margin-left: -50px;">
+                    {% for astronaut in filtered_data %}
+                        <div class="card">
+                            <img src='/static/img/{{ astronaut.image }}' class="card_img" alt="{{ astronaut.name }}">
+                            <p class="card_title" style="font-size: 25px">{{ astronaut.name }}</p>
+                            <p class="card_title">Возраст: {{ astronaut.age }} лет</p>
+                            <p class="card_title">Пол: {{ astronaut.sex }}</p>
+                            <p class="card_title">Страна: {{ astronaut.country }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            
+            </div>
+        <a href="../../" class="button_back" style="margin-top: 500px;">Вернуться назад</a>
+        </div>
+
+    </div>
+
+
+{% endblock %}

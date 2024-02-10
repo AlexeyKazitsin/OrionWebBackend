@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.GetAstronauts, name='astronauts'),
     path('astronaut/<int:id>/', views.GetAstronaut, name='astronaut_url'),
+    path('flight/', views.GetFlight, name='flight_url'),
 ]
